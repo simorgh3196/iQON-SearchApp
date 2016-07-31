@@ -25,13 +25,6 @@ class ViewController: UIViewController {
     private var isLoading: Bool = false {
         didSet { UIApplication.sharedApplication().networkActivityIndicatorVisible = isLoading }
     }
-    private var canSearch: Bool = true {
-        didSet {
-            if !canSearch {
-                Alert(title: "検索上限に達しました。\n現在 \(tweets.count)件").addOk().show(self)
-            }
-        }
-    }
     
     
     override func viewDidLoad() {
@@ -66,7 +59,8 @@ class ViewController: UIViewController {
             return
         }
         
-        if isLoading || !canSearch {
+        if isLoading {
+            refreshControl.endRefreshing()
             return
         } else {
             isLoading = true
@@ -86,11 +80,6 @@ class ViewController: UIViewController {
                 self.tweets += response.items
                 print("Updated tweets. count:", self.tweets.count)
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in
-                    if response.items.count == 0 {
-                        self?.canSearch = false
-                        return
-                    }
-                    
                     self?.collectionView.reloadData()
                     let delay = 1.0 * Double(NSEC_PER_SEC)
                     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(delay)), dispatch_get_main_queue(), {
